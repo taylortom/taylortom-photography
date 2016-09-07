@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang='en'>
+  <head>
+    <meta charset='utf-8'>
+    <title>Photography - taylortom.co.uk</title>
+    <meta name='author' content='Thomas Taylor'>
+    <link href="https://fonts.googleapis.com/css?family=Cutive+Mono|Satisfy" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
+    <!--[if lt IE 9]>
+      <script src='https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.js'></script>
+    <![endif]-->
+  </head>
+  <body>
+    <style>
+      body {
+        margin: 0;
+        background-color: #dedede;
+        text-align: center;
+      }
+      .header {
+        margin: 1.5% 0;
+        border-top: 2px solid #ccc;
+        border-bottom: 2px solid #ccc;
+        border-radius: 5px;
+        padding-bottom: 35px
+      }
+      .header img {
+        width: 30%;
+        min-width: 200px;
+      }
+      .header .title {
+        margin-top: -25px;
+        font-size: 40px;
+        font-family: 'Satisfy', serif;
+        font-style: italic;
+      }
+      .photos {
+        background-color: black;
+        padding: 4px;
+      }
+      .photos .inner {
+        /*max-width: 850px;*/
+        /*margin: 0 auto;*/
+      }
+      .photos .photo {
+        display: inline-block;
+        position: relative;
+        margin: 4px 4px 1px 4px;
+      }
+      .photos .photo img.full {
+        display: none;
+      }
+      .photos .photo.enlarge {
+        width: 100%;
+        height: 80vh;
+      }
+      .photos .photo.enlarge img.full {
+        display: inline-block;
+        max-width: 100%;
+        max-height: 100%;
+      }
+      .photos .photo.enlarge img.thumb {
+        display: none;
+      }
+      .photos .photo .title {
+        display: none;
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 10;
+        margin: 0 auto;
+        margin: 10px;
+        font-family: monospace;
+        font-size: 18px;
+        color: white;
+        text-align: center;
+        background-color: rgba(0,0,0,0.7);
+      }
+      .footer {
+        font-size: 24px;
+        font-family: 'Cutive Mono', monospace;
+        border-top: 2px solid #ccc;
+        margin: 1.5% 0 150px 0;
+        padding-top: 30px;
+      }
+    </style>
+    <script>
+      // START
+      $(onReady);
+
+      function onReady() {
+        $.ajax('https://api.flickr.com/services/rest/?method=flickr.people.getPhotos', {
+          method: 'GET',
+          data: {
+            api_key: '1be25adcdc5b396e8bc795271fb8f0d7',
+            user_id: '12202482@N03'
+          },
+          success: function(data) {
+            processPhotoData(data);
+          },
+          error: handleError
+        });
+      }
+
+      function processPhotoData(xmlData) {
+        var photos = $('photo', xmlData);
+        for(var i = 0; i < photos.length; i++) {
+          var attrs = photos[i].attributes;
+          var data = {};
+          for(var j = 0; j < attrs.length; j++) {
+            var attr = attrs[j];
+            data[attr.name] = attr.value;
+          }
+          renderPhoto(data);
+        }
+      };
+
+      function renderPhoto(data) {
+        $('.photos .inner').append(photoDiv(data));
+        $('.photo[data-id=' + data.id + ']')
+          .click(onClick)
+          .mouseover(onMouseOver)
+          .mouseout(onMouseOut);
+      };
+
+      function photoDiv(data) {
+        var url = 'https://www.flickr.com/photos/' + data.owner + '/' + data.id;
+        var div =
+          '<div class="photo" data-id="' + data.id + '">' +
+            '<div class="title">' + data.title + '</div>' +
+            '<a href="' + url + '" target="_blank">' +
+              '<img class="full"/>' +
+              '<img src=' + getPhotoURL(data.id, data.farm, data.server, data.secret, 'q') + ' class="thumb"/>' +
+            '</a>' +
+          '</div>';
+
+          return div;
+      }
+
+      /**
+       * Expected sizes:
+       * s	small square 75x75
+       * q	large square 150x150
+       * t	thumbnail, 100 on longest side
+       * m	small, 240 on longest side
+       * n	small, 320 on longest side
+       * -	medium, 500 on longest side
+       * z	medium 640, 640 on longest side
+       * c	medium 800, 800 on longest side†
+       * b	large, 1024 on longest side*
+       * h	large 1600, 1600 on longest side†
+       * k	large 2048, 2048 on longest side†
+       * o	original image, either a jpg, gif or png, depending on source format
+       */
+      function getPhotoURL(id, farm, server, secret, size) {
+        if(!size) size = '';
+        return 'https://farm' + farm + '.staticflickr.com/' + server + '/' + id + '_' + secret + '_' + size + '.jpg';
+      }
+
+      function getDataFromURL(url) {
+        // remove unusable parts
+        url = url.replace('https://','').replace('.staticflickr.com','');
+
+        var parts = url.split('/');
+        var filename = parts[2].replace(/\..*$/,'').split('_');
+
+        return {
+          farm: parts[0].replace('farm',''),
+          server: parts[1],
+          id: filename[0],
+          secret: filename[1],
+          size: filename[2]
+        };
+      }
+
+      function onClick(event) {
+        event && event.preventDefault();
+        if($(this).hasClass('enlarge')) {
+          $(this).removeClass('enlarge');
+          $(document).scrollTop($(this).offset().top);
+          return;
+        }
+
+        $('.photo').removeClass('enlarge');
+        $(this).addClass('enlarge');
+
+        var d = getDataFromURL($('img.thumb', this).attr('src'));
+        $('img.full', this).attr('src', getPhotoURL(d.id, d.farm, d.server, d.secret, 'h'));
+        $(document).scrollTop($(this).offset().top);
+      }
+
+      function onMouseOver(event) {
+        $('.title', this).show();
+      }
+
+      function onMouseOut(event) {
+        $('.title', this).hide();
+      }
+
+      function handleError() {
+        console.log(arguments);
+      }
+    </script>
+    <div class="header">
+      <img src="https://maxcdn.icons8.com/iOS7/PNG/512/Photo_Video/camera-512.png">
+      <div class="title">photography by tom.</div>
+    </div>
+    <div class="photos">
+      <div class="inner">
+      </div>
+    </div>
+    <div class="footer">
+      photography.taylortom.co.uk.
+    </div>
+  </body>
+</html>
