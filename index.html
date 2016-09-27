@@ -3,282 +3,40 @@
   <head>
     <meta charset='utf-8'>
     <title>Photography - taylortom.co.uk</title>
-    <meta name='author' content='Thomas Taylor'>
-    <link href="https://fonts.googleapis.com/css?family=Cutive+Mono|Satisfy" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Cutive+Mono|Satisfy|Roboto" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=" crossorigin="anonymous"></script>
+    <script src="js/imagesloaded.pkgd.min.js"></script>
+    <script src="js/main.js"></script>
     <!--[if lt IE 9]>
       <script src='https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.js'></script>
     <![endif]-->
   </head>
   <body>
-    <style>
-      .no-scroll {
-        position: fixed;
-      }
-      body {
-        margin: 0;
-        background-color: #f3f5f6;
-        text-align: center;
-      }
-      .lightbox {
-        display:none;
-        width: 100vw;
-        height: 100vh;
-        position: fixed;
-        top: 0;
-        left: 0;
-        background-color: rgba(0,0,0,0.6)
-      }
-      .lightbox .container {
-        margin: 0 auto;
-        margin: 2.5%;
-        width: 90%;
-        height: 90%;
-      }
-      .lightbox .container .close {
-        position: absolute;
-        right: 15%;
-        top: 7%;
-        display: inline-block;
-        color: rgba(255, 255, 255, 0.5);
-        font-size: 20px;
-        font-family: 'Cutive Mono', monospace;
-      }
-      .lightbox .container img {
-        width:auto;
-        height:auto;
-        max-width: 100%;
-        max-height: 100%;
-      }
-
-      .header {
-        background-color: #f3f5f6;
-        padding: 35px 0;
-      }
-      .header .inner {
-        border-top: 2px solid #ccc;
-        border-bottom: 2px solid #ccc;
-        padding: 20px 0;
-      }
-      .header img {
-        width: 275px;
-        margin-bottom: -5px;
-      }
-      .header .title {
-        margin: 0 auto;
-        margin-bottom: 10px;
-        font-size: 38px;
-        font-family: 'Satisfy', serif;
-        font-style: italic;
-      }
-      .header .controls {
-        margin: 0 auto;
-      }
-      .header .controls a {
-        display: inline-block;
-        padding: 5px;
-        width: 80px;
-        background-color: #bbb;
-        color: black;
-        font-family: 'Cutive Mono', monospace;
-        border-radius: 4px;
-        border: 1px solid #a9a9a9;
-        text-decoration: none;
-      }
-      .header .controls a:hover {
-        text-decoration: underline;
-        background-color: #9a9a9a;
-      }
-      .photos {
-        background-color: rgb(42, 42, 47);
-        /*border-top: 2px solid #ccc;*/
-        border-bottom: 2px solid #ccc;
-      }
-      .photos .inner {
-        width: 95%;
-        margin: 0 auto;
-        line-height: 0;
-        padding: 2.5% 0;
-      }
-
-      .photos .photo {
-        display: inline-block;
-        position: relative;
-        margin-right: -3px;
-        margin-bottom: 3px;
-        height: 280px;
-        width: auto;
-        background-color: rgb(42, 42, 47);;
-      }
-      .photos .photo img {
-        border: 3px solid white;
-        width: auto;
-        height: 100%;
-        cursor: pointer;
-      }
-      .photos .photo.enlarge img.thumb {
-        display: none;
-      }
-      .photos .photo .title {
-        display: none;
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 10;
-        margin: 0 auto;
-        margin: 10px;
-        line-height: 1;
-        font-family: monospace;
-        font-size: 18px;
-        color: white;
-        text-align: center;
-        background-color: rgba(0,0,0,0.7);
-      }
-      .footer {
-        font-size: 22px;
-        font-family: 'Cutive Mono', monospace;
-        margin: 30px 0;
-        border-top: 2px solid #ccc;
-        border-bottom: 2px solid #ccc;
-        padding: 75px 0 20px 0;
-      }
-    </style>
-    <script>
-      // START
-      $(onReady);
-
-      function onReady() {
-        setUpListeners();
-        loadPhotos();
-      }
-
-      function setUpListeners(xmlData) {
-        $('.lightbox img').click(closeLightBox);
-      }
-
-      function loadPhotos(xmlData) {
-        $.getJSON('https://api.flickr.com/services/rest/?method=flickr.people.getPhotos&jsoncallback=?', {
-          api_key: '1be25adcdc5b396e8bc795271fb8f0d7',
-          user_id: '12202482@N03',
-          extras: 'date_upload,date_taken,views',
-          format: 'json'
-        }, function done(data,message,response) {
-          if(response.status === 200) processPhotoData(data);
-          });
-      }
-
-      function processPhotoData(data) {
-        for(var i = 0; i < data.photos.photo.length; i++) {
-          renderPhoto(data.photos.photo[i]);
-        }
-      };
-
-      function renderPhoto(data) {
-        $('.photos .inner').append(photoDiv(data));
-        $('.photo[data-id=' + data.id + ']')
-          .click(openLightBox)
-          .mouseover(onMouseOver)
-          .mouseout(onMouseOut);
-      };
-
-      function photoDiv(data) {
-        var url = 'https://www.flickr.com/photos/' + data.owner + '/' + data.id;
-        var div =
-          '<div class="photo" data-id="' + data.id + '">' +
-            '<div class="title">' + data.title + '</div>' +
-            '<a href="' + url + '" target="_blank">' +
-              '<img src=' + getPhotoURL(data.id, data.farm, data.server, data.secret) + ' class="thumb"/>' +
-            '</a>' +
-          '</div>';
-
-          return div;
-      }
-
-      /**
-       * Accepted sizes:
-       * s:square75 q:square150
-       * Measurement on longest side:
-       * t:100 m:240 n:320 -:500 z:640 c:800 b:1024 h:1600 k:2048 o:original
-       */
-      function getPhotoURL(id, farm, server, secret, size) {
-        if(!size) size = '';
-        else size = '_' + size;
-
-        return 'https://farm' + farm + '.staticflickr.com/' + server + '/' + id + '_' + secret + size + '.jpg';
-      }
-
-      function getDataFromURL(url) {
-        // remove unusable parts
-        url = url.replace('https://','').replace('.staticflickr.com','');
-
-        var parts = url.split('/');
-        var filename = parts[2].replace(/\..*$/,'').split('_');
-
-        return {
-          farm: parts[0].replace('farm',''),
-          server: parts[1],
-          id: filename[0],
-          secret: filename[1],
-          size: filename[2]
-        };
-      }
-
-      function openLightBox(event) {
-        event && event.preventDefault();
-        $('body').css({
-          top: -$('body').scrollTop(),
-          position: 'fixed'
-        });
-
-        var imgData = getDataFromURL($('img', this).attr('src'));
-        $('.lightbox img').attr('src', '');
-        $('.lightbox img').attr('src', getPhotoURL(imgData.id,imgData.farm,imgData.server,imgData.secret,'h'));
-        $('.lightbox').fadeIn(300).css('z-index',5000);
-      }
-
-      function closeLightBox() {
-        var top = -parseInt($('body').offset().top);
-        $('body').css('position','static');
-        console.log(top);
-        $('body').scrollTop(top);
-        $('.lightbox').fadeOut(300);
-      }
-
-      function onMouseOver(event) {
-        $('.title', this).show();
-      }
-
-      function onMouseOut(event) {
-        $('.title', this).hide();
-      }
-
-      function handleError() {
-        console.log(arguments);
-      }
-    </script>
     <div class="lightbox">
-      <div class="container">
-        <img/>
-      </div>
+      <img/>
     </div>
     <div class="header">
       <div class="inner">
-        <img src="cam.png">
+        <!--<img src="assets/cam.png">-->
         <div class="title">photography by tom.</div>
         <div class="controls">
-          <a href="">Wall</a>
-          <a href="">Feed</a>
-          <a href="">Profile</a>
+          <a data-page="feed" href="">Feed</a> -
+          <a data-page="wall" href="">Wall</a>
+        </div>
+        <div class="profile">
+          <div class="username"><a href="" target="_blank">@<span></span></a></div>
+          <div class="photocount"><span></span>photos</div>
+          <div class="firsttaken">First photo:<span></span></div>
         </div>
       </div>
     </div>
-    <div class="photos">
+    <div class="content">
       <div class="inner">
       </div>
     </div>
     <div class="footer">
-      photography.taylortom.co.uk.
+      All work property of <a href="http://taylortom.co.uk">Tom Taylor</a> &#169; <span class="year"></span>.
     </div>
   </body>
 </html>
