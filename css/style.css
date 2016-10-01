@@ -208,3 +208,27 @@ body a {
   font-weight: bold;
   text-decoration: none;
 }
+
+@media(max-width:750px) {
+  .content a.up {
+    display: none;
+  }
+  .content .photo.post {
+    width: 95%;
+  }
+  .header .title {
+    font-size: 40px;
+  }
+  .header .inner {
+    padding: 20px;
+  }
+  .header .controls {
+    display: none;
+  }
+  .content .photo.post {
+    margin-bottom: 30px;
+  }
+  .content .photo.post .details {
+    text-align: center;
+  }
+}
