@@ -211,7 +211,9 @@ body a {
 
 @media(max-width:750px) {
   .content a.up {
-    display: none;
+    padding: 10px;
+    top: 17px;
+    left: 15px;
   }
   .content .photo.post {
     width: 95%;
