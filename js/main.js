@@ -63,7 +63,6 @@ function loadProfile(xmlData) {
         firstphoto: data.person.photos.firstdate._content,
         firsttaken: new Date(data.person.photos.firstdatetaken._content).toDateString()
       };
-      renderProfile();
     }
   });
 }
@@ -105,16 +104,6 @@ function renderWall(event) {
       $el.css('opacity', 1);
     });
   }
-}
-
-function renderProfile(event) {
-  event && event.preventDefault();
-  $('.profile .realname span').html(userData.realname);
-  $('.profile .username span').html(userData.username);
-  $('.profile .username a').attr('href', userData.profileurl);
-  $('.profile .photocount span').html(userData.photocount);
-  $('.profile .firsttaken span').html(userData.firsttaken);
-  $('.profile .realname span').html(userData.realname);
 }
 
 function renderPhoto(data, type, template, done) {
