@@ -1,3 +1,6 @@
+// hide lightbox
+$('.lightbox').ready(function() { $('.lightbox').hide(); });
+
 // START
 $(onReady);
 var photos = false;
