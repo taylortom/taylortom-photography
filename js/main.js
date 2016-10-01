@@ -63,6 +63,8 @@ function loadProfile(xmlData) {
         firstphoto: data.person.photos.firstdate._content,
         firsttaken: new Date(data.person.photos.firstdatetaken._content).toDateString()
       };
+
+      $('.header .title a').attr('href', userData.profileurl);
     }
   });
 }
