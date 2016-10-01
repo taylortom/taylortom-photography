@@ -3,6 +3,9 @@ $(onReady);
 var photos = false;
 var userData = false;
 var page = false;
+var pageNo = 1;
+var loading = false;
+
 function onReady() {
   setUpListeners();
   loadPhotos();
@@ -11,8 +14,9 @@ function onReady() {
 }
 
 function setUpListeners(xmlData) {
-  $('.controls a[data-page=feed]').click(renderFeed);
-  $('.controls a[data-page="wall"]').click(renderWall);
+  $('.controls a[data-page=feed]').click(onFeedClicked);
+  $('.controls a[data-page="wall"]').click(onWallClicked);
+
   $('.lightbox img').click(closeLightBox);
   $('a.up').click(onUpClicked);
 
@@ -27,9 +31,23 @@ function loadPhotos(xmlData) {
     format: 'json'
   }, function done(data, message, response) {
     if(response.status === 200) {
-      photos = data.photos.photo;
+      processPhotoData(data.photos);
       renderFeed();
     }
+  });
+}
+
+function processPhotoData(data) {
+  photos = data.photo;
+  for(var i = 0, count = photos.length; i < count; i++) {
+    // convert dates for easy access
+    photos[i].datetaken = new Date(photos[i].datetaken);
+    photos[i].dateupload = new Date(parseInt(photos[i].dateupload));
+  }
+  photos.sort(function reverseChronological(a, b) {
+    if(a.datetaken > b.datetaken) return -1;
+    else if(a.datetaken < b.datetaken) return 1;
+    return 0;
   });
 }
 
@@ -61,15 +79,27 @@ function updateFooter() {
 
 function renderFeed(event) {
   event && event.preventDefault();
+
   var TYPE = 'feed';
   if(page === TYPE) return;
   page = TYPE;
-  var photosLoaded = 0;
-  var PAGE_LENGTH = 15;
+
   getContainer().empty();
-  trackProgress();
-  for(var i = 0; i < PAGE_LENGTH; i++) {
-    renderPhoto(photos[i], TYPE, photoPostDiv, function photoRendered(error, $el) {
+
+  renderFeedPage(pageNo);
+}
+
+function renderFeedPage(newPageNo) {
+  pageNo = newPageNo;
+
+  loading = true;
+  $('.content').imagesLoaded(onImagesLoaded);
+
+  var PAGE_LENGTH = 20;
+  var total = newPageNo*PAGE_LENGTH;
+
+  for(var i = total-PAGE_LENGTH; i < total; i++) {
+    renderPhoto(photos[i], page, photoPostDiv, function photoRendered(error, $el) {
       $el.css('opacity', 1);
     });
   }
@@ -77,11 +107,15 @@ function renderFeed(event) {
 
 function renderWall(event) {
   event && event.preventDefault();
+
   var TYPE = 'wall';
   if(page === TYPE) return;
   page = TYPE;
-  var photosLoaded = 0;
+
   getContainer().empty();
+
+  var photosLoaded = 0;
+
   for(var i = 0; i < photos.length; i++) {
     renderPhoto(photos[i], TYPE, photoWallDiv, function photoRendered(error, $el) {
       var min = 10;
@@ -98,7 +132,8 @@ function renderPhoto(data, type, template, done) {
   var cached = data.cache && data.cache[type];
   getContainer().append(cached || template(data));
 
-  var $photo = $('.photo[data-id=' + data.id + ']')
+
+  var $photo = $('.photo[id=' + data.id + ']')
     // listen to events
     .click(openLightBox)
     .mouseover(onMouseOver)
@@ -116,13 +151,11 @@ function renderPhoto(data, type, template, done) {
 function photoPostDiv(data) {
   var url = 'https://www.flickr.com/photos/' + data.owner + '/' + data.id;
   var div =
-    '<div class="photo post" data-id="' + data.id + '">' +
-      '<a href="' + url + '" target="_blank">' +
-        '<img src=' + getPhotoURL(data.id, data.farm, data.server, data.secret, 'b') + '/>' +
-      '</a>' +
+    '<div class="photo post" id="' + data.id + '">' +
+      '<img src=' + getPhotoURL(data.id, data.farm, data.server, data.secret, 'b') + '/>' +
       '<div class="details">' +
-        '<div class="date">' + new Date(data.datetaken).toDateString() + '</div>' +
-        '<div class="title">' + data.title + '</div>' +
+        '<div class="date">' + data.datetaken.toDateString() + '</div>' +
+        '<a class="title" href="' + url + '" target="_blank">' + data.title + '</a>' +
       '</div>' +
     '</div>';
     return div;
@@ -131,19 +164,19 @@ function photoPostDiv(data) {
 function photoWallDiv(data) {
     var url = 'https://www.flickr.com/photos/' + data.owner + '/' + data.id;
     var div =
-        '<div class="photo wall" data-id="' + data.id + '">' +
-        '<div class="details">' +
-            '<div class="title">' + data.title + '</div>' +
-        '</div>' +
-        '<a href="' + url + '" target="_blank">' +
-            '<img src=' + getPhotoURL(data.id, data.farm, data.server, data.secret) + ' class="thumb"/>' +
-        '</a>' +
+        '<div class="photo wall" id="' + data.id + '">' +
+          '<div class="details">' +
+              '<div class="title">' + data.title + '</div>' +
+          '</div>' +
+          '<a href="' + url + '" target="_blank">' +
+              '<img src=' + getPhotoURL(data.id, data.farm, data.server, data.secret) + ' class="thumb"/>' +
+          '</a>' +
         '</div>';
         return div;
 }
 
 function cachePhoto(cacheName, $el) {
-  var photoData = getPhotoById($el.attr('data-id'));
+  var photoData = getPhotoById($el.attr('id'));
   if(!photoData.cache) photoData.cache = {};
   if(!photoData.cache[cacheName]) photoData.cache[cacheName] = $el;
 }
@@ -191,6 +224,9 @@ function getContainer() {
 }
 
 function openLightBox(event) {
+  // default behaviour here
+  if(event && $(event.target).attr('href')) return;
+
   event && event.preventDefault();
   showLoader();
   var imgData = getDataFromURL($('img', this).attr('src'));
@@ -224,6 +260,10 @@ function onPageScroll(event) {
   } else {
     $('.up').fadeOut();
   }
+
+  if(!loading && (scrollPos > preloadScrollThreshold)) {
+    renderFeedPage(pageNo+1);
+  }
 }
 
 function onMouseOver(event) {
@@ -234,8 +274,23 @@ function onMouseOut(event) {
   $('.title', this).removeClass('over');
 }
 
+function onImagesLoaded(event) {
+  loading = false;
+}
+
 function onUpClicked(event) {
   $('a.up').hide();
+}
+
+function onFeedClicked(event) {
+  event && event.preventDefault();
+  pageNo = 1;
+  renderFeed();
+}
+
+function onWallClicked(event) {
+  event && event.preventDefault();
+  renderWall();
 }
 
 function handleError() {

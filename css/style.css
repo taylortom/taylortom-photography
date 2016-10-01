@@ -1,5 +1,3 @@
-
-
 body {
   margin: 0;
   background-color: #2a2a2f;
@@ -50,11 +48,6 @@ body {
   padding-bottom: 20px;
 }
 
-.header img {
-  width: 275px;
-  margin-bottom: -5px;
-}
-
 .header .title {
   margin: 0 auto;
   margin-bottom: 10px;
@@ -62,17 +55,12 @@ body {
   font-family: 'Satisfy', cursive;
   font-style: italic;
 }
-
-.header .profile {
-  display: none;
-  padding: 15px;
+.header .title a {
+  color: initial;
+  text-decoration: none;
 }
-.header .profile > div > span {
-  padding: 0 5px;
-  font-size: 150%;
-}
-.header .profile > div {
-  display: inline-block;
+.header .title a:hover {
+  text-decoration: underline;
 }
 
 .header .controls {
@@ -119,23 +107,29 @@ body {
   margin: 0 auto;
   line-height: 0;
 }
+
 .content .photo {
   line-height: 1;
   opacity: 0;
   -webkit-transition: opacity 0.4s;
   transition: opacity 0.4s;
 }
+.content .photo img {
+  cursor: pointer;
+}
 
 .content .photo.post {
   margin: 0 auto;
-  width: 50%;
-  margin-bottom: 40px;
+  width: 55%;
+  padding-top: 10px;
+  margin-bottom: 50px;
 }
+
 .content .photo.post img {
+  max-width: 100%;
+  max-height: 90vh;
   background-color: #ccc;
   padding: 1px;
-  width: 100%;
-  height: auto;
 }
 
 .content .photo.wall {
@@ -158,6 +152,7 @@ body {
 }
 .content .photo.post .details .title {
   font-weight: bold;
+  text-decoration: none;
   color: white;
 }
 .content .photo.post .details .date {
