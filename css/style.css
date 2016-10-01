@@ -96,7 +96,24 @@ body {
   border-bottom: 10px solid #ccc;
 }
 
-.content .inner {
+.content a.up {
+  display: none;
+  position: fixed;
+  top: 25px;
+  left: 27px;
+  background-color: rgba(255,255,255,0.2);
+  padding: 6px;
+  width: 75px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  color: white;
+  text-decoration: none;
+}
+.content a.up:hover {
+  border: 1px solid rgba(255,255,255,0.4);
+}
+
+.content > .inner {
   width: 95%;
   min-height: 100vh;
   margin: 0 auto;

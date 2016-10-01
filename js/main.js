@@ -14,23 +14,9 @@ function setUpListeners(xmlData) {
   $('.controls a[data-page=feed]').click(renderFeed);
   $('.controls a[data-page="wall"]').click(renderWall);
   $('.lightbox img').click(closeLightBox);
-}
+  $('a.up').click(onUpClicked);
 
-function trackProgress() {
-  getContainer().imagesLoaded()
-    .always( function( instance ) {
-      console.log('all images loaded');
-    })
-    .done( function( instance ) {
-      console.log('all images successfully loaded');
-    })
-    .fail( function() {
-      console.log('all images loaded, at least one is broken');
-    })
-    .progress( function( instance, image ) {
-      var result = image.isLoaded ? 'loaded' : 'broken';
-      console.log( 'image is ' + result + ' for ' + image.img.src );
-    });
+  $(document).scroll(onPageScroll);
 }
 
 function loadPhotos(xmlData) {
@@ -228,12 +214,28 @@ function closeLightBox() {
   $('.lightbox').fadeOut(300);
 }
 
+function onPageScroll(event) {
+  var preloadScrollThreshold = ($(document).height() - window.innerHeight) - ($(document).height() * 0.10);
+  var upScrollThreshold = window.innerHeight * 1.1;
+  var scrollPos = $(document).scrollTop();
+
+  if(scrollPos > upScrollThreshold) {
+    $('.up').fadeIn();
+  } else {
+    $('.up').fadeOut();
+  }
+}
+
 function onMouseOver(event) {
   $('.title', this).addClass('over');
 }
 
 function onMouseOut(event) {
   $('.title', this).removeClass('over');
+}
+
+function onUpClicked(event) {
+  $('a.up').hide();
 }
 
 function handleError() {
