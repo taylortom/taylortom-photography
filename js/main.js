@@ -206,12 +206,22 @@ function getContainer() {
 
 function openLightBox(event) {
   event && event.preventDefault();
+  showLoader();
   var imgData = getDataFromURL($('img', this).attr('src'));
   $('.lightbox img').attr('src', '');
   $('.lightbox img').imagesLoaded().done(function() {
+    hideLoader();
     $('.lightbox').fadeIn(300).css('z-index',5000);
   });
   $('.lightbox img').attr('src', getPhotoURL(imgData.id,imgData.farm,imgData.server,imgData.secret,'h'));
+}
+
+function showLoader() {
+  $('.loading').fadeIn(200);
+}
+
+function hideLoader() {
+  $('.loading').hide();
 }
 
 function closeLightBox() {
