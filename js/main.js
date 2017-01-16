@@ -21,7 +21,7 @@ function onReady() {
   loadData(function() {
     hideLoader();
     getContainer().show();
-    render();
+    render('feed');
   });
   updateFooter();
 }
@@ -162,20 +162,32 @@ function updateFooter() {
   $('.footer .year').html((new Date()).getFullYear());
 }
 
-function render() {
-  renderFeed();
+function render(pageType, data) {
+  if(page === pageType) return;
+  page = pageType;
+
+  switch(page) {
+    case 'feed':
+      renderFeed(data);
+      break;
+    case 'wall':
+      renderWall(data);
+      break;
+    case 'albums':
+      renderAlbums(data);
+      var position = $('body').outerHeight() > $(window).height() ? 'initial' : 'fixed';
+      $('.footer').css('position', position);
+      return;
+    case 'album':
+      renderAlbum(data);
+      break;
+  }
+  
   $('.footer').css('position', 'initial');
 }
 
-function renderFeed(event) {
-  event && event.preventDefault();
-
-  var TYPE = 'feed';
-  if(page === TYPE) return;
-  page = TYPE;
-
+function renderFeed() {
   getContainer().empty();
-
   renderFeedPage(pageNo);
 }
 
@@ -195,20 +207,14 @@ function renderFeedPage(newPageNo) {
   }
 }
 
-function renderWall(event) {
-  event && event.preventDefault();
-
-  var TYPE = 'wall';
-  if(page === TYPE) return;
-  page = TYPE;
-
+function renderWall() {
   getContainer().empty();
 
   var photosLoaded = 0;
   var min = 10;
 
   for(var i = 0; i < photos.length; i++) {
-    renderPhoto(photos[i], TYPE, photoWallDiv, function photoRendered(error, $el) {
+    renderPhoto(photos[i], page, photoWallDiv, function photoRendered(error, $el) {
       $el.css({
         "margin-right": getRandomPhotoSpacing(),
         "margin-bottom": getRandomPhotoSpacing()
@@ -219,12 +225,9 @@ function renderWall(event) {
 }
 
 function renderAlbums() {
-  var TYPE = 'albums';
-  if(page === TYPE) return;
-  page = TYPE;
-
   var container = getContainer();
   container.empty();
+
   for(var i = 0, count = albums.length; i < count; i++) {
     var album = albums[i];
     var date = new Date(album.datetaken);
@@ -244,12 +247,7 @@ function renderAlbums() {
 }
 
 function renderAlbum(album) {
-  var TYPE = 'album';
-  if(page === TYPE) return;
-  page = TYPE;
-
-  var container = getContainer();
-  container.empty();
+  getContainer().empty();
 
   for(var i = 0, count = album.photos.length; i < count; i++) {
     renderPhoto(album.photos[i], 'wall', photoWallDiv, function(error, $photo) {
@@ -441,22 +439,22 @@ function onUpClicked(event) {
 function onFeedClicked(event) {
   event && event.preventDefault();
   pageNo = 1;
-  renderFeed();
+  render('feed');
 }
 
 function onWallClicked(event) {
   event && event.preventDefault();
-  renderWall();
+  render('wall');
 }
 
 function onAlbumsClicked(event) {
   event && event.preventDefault();
-  renderAlbums();
+  render('albums');
 }
 
 function onAlbumClicked(event) {
   event && event.preventDefault();
-  renderAlbum(getAlbumById($(event.currentTarget).attr('data-id')));
+  render('album', getAlbumById($(event.currentTarget).attr('data-id')));
 }
 
 function handleError() {
