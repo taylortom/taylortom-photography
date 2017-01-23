@@ -70,8 +70,9 @@ function loadPhotos(loaded) {
 function processPhotoData(data) {
   photos = data.photo;
   for(var i = 0, count = photos.length; i < count; i++) {
-    // convert dates for easy access
-    photos[i].datetaken = new Date(photos[i].datetaken);
+    // convert dates for easy access	
+	var parts = photos[i].datetaken.split(/[- :]/);	// convert datetaken from SQL datetime format
+    photos[i].datetaken = new Date(Date.UTC(parts[0], parts[1]-1, parts[2], parts[3], parts[4], parts[5]));
     photos[i].dateupload = new Date(parseInt(photos[i].dateupload));
   }
   photos.sort(function reverseChronological(a, b) {
