@@ -160,7 +160,7 @@ body a {
 .content a.up {
   display: none;
   position: fixed;
-  z-index: 997;
+  z-index: 996;
   top: 65px;
   left: 27px;
   background-color: rgba(255,255,255,0.2);

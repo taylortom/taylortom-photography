@@ -1,6 +1,12 @@
 // hide lightbox
 $('.lightbox').ready(function() { $('.lightbox').hide(); });
 
+var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+if(isMobile) {
+  console.log("Redirecting to Flickr beause I'm too lazy to support your OS just yet. Sorry!");
+  window.location.replace('https://www.flickr.com/photos/12202482@N03/');
+}
+
 var photosDone;
 var albumsDone;
 var profileDone;
@@ -14,6 +20,9 @@ var pageNo = 1;
 var loading = false;
 
 function onReady() {
+  if(isMobile) {
+    $('body').addClass('mobile');
+  }
   setUpListeners();
   getContainer().css('margin-top', $('.header').outerHeight());
   getContainer().hide();
@@ -183,7 +192,7 @@ function render(pageType, data) {
       renderAlbum(data);
       break;
   }
-  
+
   $('.footer').css('position', 'initial');
 }
 
